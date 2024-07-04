@@ -1,0 +1,1301 @@
+
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <iomanip>
+#include <cstdlib>
+#include <limits>
+#include <cctype>
+#include <map>
+#include <conio.h>
+
+using namespace std;
+
+struct Session {
+	int number;
+	string name;
+	string surname;
+	string father;
+	string code;
+	string gender;
+	string education_form;
+	int grade;
+	string date;
+	Session *next;
+	Session *prev;
+};
+
+const int PAGE_SIZE = 5;
+
+void displayPage(Session *&head, int currentPage) {
+	int startIndex = (currentPage - 1) * PAGE_SIZE;
+	int endIndex = startIndex + PAGE_SIZE - 1;
+
+	Session *current = head;
+
+	cout << setw(15) << left << "Student Number" << " | " << setw(15) << left
+	     << "Name" << " | " << setw(15) << left << "Surname" << " | "
+	     << setw(15) << left << "Father" << " | " << setw(15) << left
+	     << "Group Code" << " | " << setw(15) << left << "Gender" << " | "
+	     << setw(15) << left << "Education Form" << " | " << setw(15) << left
+	     << "Grade" << " | " << setw(15) << left << "Exams Date" << endl;
+
+	for (int i = 0; i <= endIndex && current; ++i, current = current->next) {
+		if (i >= startIndex) {
+			cout << setw(15) << left << current->number << " | " << setw(15)
+			     << left << current->name << " | " << setw(15) << left
+			     << current->surname << " | " << setw(15) << left
+			     << current->father << " | " << setw(1) << left
+			     << current->code[0] << setw(1) << left << current->code[1]
+			     << setw(1) << left << "/" << setw(1) << left
+			     << current->code[2] << setw(1) << left << "-" << setw(1)
+			     << left << current->code[3] << setw(1) << left
+			     << current->code[4] << setw(1) << left << "-" << setw(7)
+			     << left << current->code[5] << " | " << setw(15) << left
+			     << current->gender << " | " << setw(15) << left
+			     << current->education_form << " | " << setw(15) << left
+			     << current->grade << " | " << setw(1) << left
+			     << current->date[0] << setw(1) << left << current->date[1]
+			     << setw(1) << left << '.' << setw(1) << left
+			     << current->date[2] << setw(1) << left << current->date[3]
+			     << setw(1) << left << '.' << setw(1) << left
+			     << current->date[4] << setw(1) << left << current->date[5]
+			     << setw(1) << left << '.' << endl;
+		}
+	}
+}
+
+int getNumberOfPages(Session *&head) {
+	int count = 0;
+	Session *current = head;
+
+	while (current) {
+		++count;
+		current = current->next;
+	}
+
+	return (count + PAGE_SIZE - 1) / PAGE_SIZE;
+}
+
+void scrollMenu(Session *&head) {
+
+	if (!head) {
+		cout << "The list is empty. Cannot display scrolling menu." << endl;
+		cout << "Press ENTER to return." << endl;
+		cin.ignore();
+		cin.get();
+		return;
+	}
+
+	int currentPage = 1;
+	int totalPages = getNumberOfPages(head);
+
+	while (true) {
+
+		system("cls");
+		cout << "Scrolling Menu:" << endl;
+		cout << "Page " << currentPage << " of " << totalPages << endl;
+		cout << "------------------------------------------------------------------------------------------------------------------------------------------------------------" << endl;
+		displayPage(head, currentPage);
+		cout << "------------------------------------------------------------------------------------------------------------------------------------------------------------" << endl;
+		cout << "<- Previous Page    Next Page ->" << endl;
+		cout << "Click ENTER for exit" << endl;
+
+		char tableKey = _getch();
+
+		switch (tableKey) {
+			case 75:  // Стрелка влево
+				if (currentPage > 1) {
+					--currentPage;
+				}
+				break;
+			case 77:  // Стрелка вправо
+				if (currentPage < totalPages) {
+					++currentPage;
+				}
+				break;
+			case 13:
+				return;
+				break;
+
+			default:
+				break;
+		}
+	}
+
+}
+
+void displayMenu(string menu[], int menuSize, int selectedItem) {
+	system("cls");
+	cout << menu[0]; // Выводим заголовок меню
+
+	for (int i = 1; i < menuSize; ++i) {
+		if (i == selectedItem) {
+			cout << "-> ";
+		} else {
+			cout << "   ";
+		}
+		cout << menu[i];
+	}
+}
+
+void addStudent(Session *&head, Session *&tail) {
+	Session session;
+	bool isValid = false;
+	
+number:
+			
+		system("cls");
+		
+		cout << "Enter student number: ";
+		while (!isValid) {
+			if (cin >> session.number) {
+				bool numberExists = false;
+				Session *current = head;
+				while (current != NULL) {
+					if (current->number == session.number) {
+						numberExists = true;
+						cout << "Student with the same number already exists. Please try again: ";
+						break;
+					}
+					current = current->next;
+				}
+
+				if (numberExists) {
+					cin.clear();
+					cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+					continue;
+				}
+
+				isValid = true;
+			} else {
+				cout << "Input error. Please try again: ";
+				cin.clear();
+				cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			}
+		}
+		system("cls");
+
+		cout << "Enter student name (Eng): ";
+		do {
+			isValid = true; // Сбрасываем флаг ошибки перед каждой попыткой ввода
+
+			cin >> session.name;
+
+			for (char c : session.name) {
+				if (!isalpha(c)) {
+					isValid = false;
+					cout << "Input error. Please try again: ";
+					break;
+				}
+			}
+
+		} while (!isValid);
+		system("cls");
+
+
+		cout << "Enter student surname (Eng): ";
+		do {
+			isValid = true;
+
+			cin >> session.surname;
+
+			for (char c : session.surname) {
+				if (!isalpha(c)) {
+					isValid = false;
+					cout << "Input error. Please try again: ";
+					break;
+				}
+			}
+
+		} while (!isValid);
+		system("cls");
+
+		cout << "Enter student father (Eng): ";
+		do {
+			isValid = true;
+
+			cin >> session.father;
+
+			for (char c : session.father) {
+				if (!isalpha(c)) {
+					isValid = false;
+					cout << "Input error. Please try again: ";
+					break;
+				}
+			}
+
+		} while (!isValid);
+		system("cls");
+
+		cout << "Enter student group code (Example: ITb216): ";
+		while (true) {
+			cin >> session.code;
+			if (session.code.size() == 6) { // Выход из цикла, если введено 6 цифр
+				break;
+			} else {
+				cout << "Input error. Please try again: ";
+				cin.clear();
+				cin.ignore();
+			}
+		}
+		system("cls");
+
+		string genderMenu[] = {
+			"Choose student gender:\n",
+			"1. Female (F)\n",
+			"2. Male (M)\n"
+		};
+
+		const int genderMenuSize = 3; // Количество пунктов в подменю сортировки
+		int genderSelectedItem = 1;
+
+		while (1) {
+
+			displayMenu(genderMenu, genderMenuSize, genderSelectedItem);
+
+			char genderKey = _getch();
+
+			switch (genderKey) {
+				case 72: // Стрелка вверх
+					genderSelectedItem = (genderSelectedItem - 1 + genderMenuSize) % genderMenuSize;
+					break;
+				case 80: // Стрелка вниз
+					genderSelectedItem = (genderSelectedItem + 1) % genderMenuSize;
+					break;
+				case 13: // Enter
+
+					switch (genderSelectedItem) {
+						case 1:
+							session.gender = "F";
+							goto education;
+						case 2:
+							session.gender = "M";
+							goto education;
+						default:
+							break;
+					}
+
+					break;
+				default:
+					break;
+			}
+		}
+
+education:
+
+		string educationMenu[] = {
+			"Enter student education form:\n",
+			"1. FullTime\n",
+			"2. Extramural\n"
+		};
+
+		const int educationMenuSize = 3; // Количество пунктов в подменю сортировки
+		int educationSelectedItem = 1;
+
+		while (1) {
+
+			displayMenu(educationMenu, educationMenuSize, educationSelectedItem);
+
+			char educationKey = _getch();
+
+			switch (educationKey) {
+				case 72: // Стрелка вверх
+					educationSelectedItem = (educationSelectedItem - 1 + educationMenuSize) % educationMenuSize;
+					break;
+				case 80: // Стрелка вниз
+					educationSelectedItem = (educationSelectedItem + 1) % educationMenuSize;
+					break;
+				case 13: // Enter
+
+					switch (educationSelectedItem) {
+						case 1:
+							session.education_form = "FullTime";
+							goto grade;
+						case 2:
+							session.education_form = "Extramural";
+							goto grade;
+						default:
+							break;
+					}
+
+					break;
+				default:
+					break;
+			}
+		}
+
+grade:
+		system("cls");
+
+		cout << "Enter student grade for the previous session: ";
+		while (isValid) {
+			if (cin >> session.grade) {
+				isValid = false;
+			} else {
+				cout << "Input error. Please try again: ";
+				cin.clear();
+				cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+			}
+		}
+		system("cls");
+
+		cout << "Enter date of exams (Example: 120923): ";
+		while (true) {
+			cin >> session.date;
+
+			bool isValid = true;
+			for (char c : session.date) {
+				if (!isdigit(c)) {
+					isValid = false;
+					break;
+				}
+			}
+
+			if (session.date.size() == 6 && isValid) {
+				break;
+			} else {
+				cout << "Input error. Please try again: ";
+				cin.clear();
+				cin.ignore();
+			}
+		}
+		system("cls");
+
+		Session *newSession = new Session;
+
+		newSession->number = session.number;
+		newSession->name = session.name;
+		newSession->surname = session.surname;
+		newSession->father = session.father;
+		newSession->code = session.code;
+		newSession->gender = session.gender;
+		newSession->education_form = session.education_form;
+		newSession->grade = session.grade;
+		newSession->date = session.date;
+
+		newSession->next = NULL;
+		newSession->prev = NULL;
+
+		if (!head) {
+			head = tail = newSession;
+		} else {
+			tail->next = newSession;
+			newSession->prev = tail;
+			tail = newSession;
+		}
+
+		string Menu[] = {
+			"Do you want to add another student?\n",
+			"1. Yes\n",
+			"2. No\n"
+		};
+
+		const int MenuSize = 3; 
+		int SelectedItem = 1;
+		char choice;
+		
+		while (1) {
+
+			displayMenu(Menu, MenuSize, SelectedItem);
+
+			char Key = _getch();
+
+			switch (Key) {
+				case 72: // Стрелка вверх
+					SelectedItem = (SelectedItem - 1 + MenuSize) % MenuSize;
+					break;
+				case 80: // Стрелка вниз
+					SelectedItem = (SelectedItem + 1) % MenuSize;
+					break;
+				case 13: // Enter
+
+					switch (SelectedItem) {
+						case 1:
+							goto number;
+						case 2:
+							return;
+						default:
+							break;
+					}
+
+					break;
+				default:
+					break;
+		}
+	}
+}
+
+void printSession(Session *session) {
+	cout << "Number: " << session->number << endl;
+	cout << "Name: " << session->name << endl;
+	cout << "Surname: " << session->surname << endl;
+	cout << "Father: " << session->father << endl;
+	cout << "Code: " << session->code[0] << session->code[1] 
+		<< "/" << session->code[2] << "-" << session->code[3] 
+		<< session->code[4] << "-" << session->code[5] << endl;
+	cout << "Gender: " << session->gender << endl;
+	cout << "Education Form: " << session->education_form << endl;
+	cout << "Grade: " << session->grade << endl;
+	cout << "Date: " << session->date[0] << session->date[1] << '.'
+	     << session->date[2] << session->date[3] << '.'
+	     << session->date[4] << session->date[5] << '.'<< endl;
+}
+
+void deleteStudent(Session *&head, Session *&tail) {
+
+	if (!head) {
+		cout << "The list is empty. Cannot display scrolling menu." << endl;
+		cout << "Press ENTER to return." << endl;
+		cin.ignore();
+		cin.get();
+		return;
+	}
+
+	int currentPage = 1;
+	int totalPages = getNumberOfPages(head);
+
+	while (true) {
+
+		system("cls");
+		cout << "Scrolling Menu:" << endl;
+		cout << "Page " << currentPage << " of " << totalPages << endl;
+		cout << "------------------------------------------------------------------------------------------------------------------------------------------------------------" << endl;
+		displayPage(head, currentPage);
+		cout << "------------------------------------------------------------------------------------------------------------------------------------------------------------" << endl;
+		cout << "<- Previous Page    Next Page ->" << endl;
+		cout << "Click ENTER for exit" << endl;
+
+		char tableKey = _getch();
+
+		switch (tableKey) {
+			case 75:  // Стрелка влево
+				if (currentPage > 1) {
+					--currentPage;
+				}
+				break;
+			case 77:  // Стрелка вправо
+				if (currentPage < totalPages) {
+					++currentPage;
+				}
+				break;
+			case 13:
+				goto del;
+				break;
+
+			default:
+				break;
+		}
+	}
+
+del:
+
+	int studentNumber;
+	bool isValid = false;
+
+	cout << "Enter student number: ";
+	while (!isValid) {
+		if (cin >> studentNumber) {
+			isValid = true;
+		} else {
+			cout << "Input error. Please try again: ";
+			cin.clear();
+			cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		}
+	}
+
+	Session *current = head;
+	Session *previous = NULL;
+
+	while (current) {
+		if (current->number == studentNumber) {
+			if (previous != NULL) {
+				previous->next = current->next;
+				if (current->next) {
+					current->next->prev = previous;
+				} else {
+					tail = previous;
+				}
+				delete current;
+				cout << "Student with number " << studentNumber << " deleted."
+				     << endl;
+				return;
+			} else {
+				head = current->next;
+				if (head) {
+					head->prev = NULL;
+				}
+				delete current;
+				cout << "Student with number " << studentNumber << " deleted."
+				     << endl;
+				return;
+			}
+		}
+
+		previous = current;
+		current = current->next;
+	}
+
+	cout << "Student with number " << studentNumber << " not found in the list."
+	     << endl;
+}
+
+void sortListByGradeUp(Session *&head) {
+	if (!head || !head->next) {
+		cout << "The list of one student or without students cannot be sorted" << endl;
+		cout << "Press ENTER to return." << endl;
+		return;
+	}
+
+	Session *sortedList = NULL;  // Отсортированный список
+
+	while (head) {
+		// Находим узел с наименьшей оценкой в оставшейся части списка
+		Session *min = head;
+		Session *current = head->next;
+
+		while (current) {
+			if (current->grade < min->grade) {
+				min = current;
+			}
+			current = current->next;
+		}
+
+		// Убираем найденный узел из исходного списка
+		if (min->prev) {
+			min->prev->next = min->next;
+		} else {
+			head = min->next;
+		}
+
+		if (min->next) {
+			min->next->prev = min->prev;
+		}
+
+		// Вставляем найденный узел в отсортированный список
+		min->next = NULL;
+		min->prev = NULL;
+
+		if (!sortedList) {
+			sortedList = min;
+		} else {
+			Session *last = sortedList;
+			while (last->next) {
+				last = last->next;
+			}
+			last->next = min;
+			min->prev = last;
+		}
+	}
+
+	head = sortedList;
+
+	cout << "The list has been sorted by grades." << endl;
+}
+
+void sortListByGradeDown(Session *&head) {
+	if (!head || !head->next) {
+		cout << "The list of one student or without students cannot be sorted" << endl;
+		cout << "Press ENTER to return." << endl;
+		return;
+	}
+
+	Session *sortedList = NULL;  // Отсортированный список
+
+	while (head) {
+		// Находим узел с наибольшей оценкой в оставшейся части списка
+		Session *max = head;
+		Session *current = head->next;
+
+		while (current) {
+			if (current->grade > max->grade) {
+				max = current;
+			}
+			current = current->next;
+		}
+
+		// Убираем найденный узел из исходного списка
+		if (max->prev) {
+			max->prev->next = max->next;
+		} else {
+			head = max->next;
+		}
+
+		if (max->next) {
+			max->next->prev = max->prev;
+		}
+
+		// Вставляем найденный узел в отсортированный список
+		max->next = NULL;
+		max->prev = NULL;
+
+		if (!sortedList) {
+			sortedList = max;
+		} else {
+			Session *last = sortedList;
+			while (last->next) {
+				last = last->next;
+			}
+			last->next = max;
+			max->prev = last;
+		}
+	}
+
+	head = sortedList;
+
+	cout << "The list has been sorted by grades." << endl;
+}
+
+void clear(Session *&head, Session *&tail) {
+	Session *current = head;
+	Session *next;
+
+	while (current) {
+		next = current->next;
+		delete current;
+		current = next;
+	}
+
+	head = tail = NULL;
+}
+
+void writeToTextFile(Session* head, string& fileName) {
+	ofstream textOutputFile(fileName + ".txt", ios::out);
+
+	if (!textOutputFile) {
+		cerr << "Error opening text file for writing." << endl;
+		return;
+	}
+
+	const Session* current = head;
+
+	while (current) {
+		textOutputFile << current->number << " " << current->name << " " << current->surname << " "
+		               << current->father << " " << current->code << " " << current->gender << " "
+		               << current->education_form << " " << current->grade << " " << current->date << endl;
+
+		current = current->next;
+
+	}
+
+	textOutputFile.close();
+
+	cout << "Data successfully written to files" << endl;
+}
+
+void writeToBinaryFile(Session* head, string& fileName) {
+	ofstream file(fileName + ".bin", ios::binary);
+
+	if (!file) {
+		cerr << "Error opening binary file for writing." << endl;
+		file.close();
+		return;
+	}
+
+	while (head != nullptr) {
+		file.write(reinterpret_cast<char*>(&head->number), sizeof(head->number));
+
+		size_t nameSize = head->name.size();
+		file.write(reinterpret_cast<char*>(&nameSize), sizeof(nameSize));
+		file.write(head->name.c_str(), nameSize);
+
+		size_t surnameSize = head->surname.size();
+		file.write(reinterpret_cast<char*>(&surnameSize), sizeof(surnameSize));
+		file.write(head->surname.c_str(), surnameSize);
+
+		size_t fatherSize = head->father.size();
+		file.write(reinterpret_cast<char*>(&fatherSize), sizeof(fatherSize));
+		file.write(head->father.c_str(), fatherSize);
+
+		size_t codeSize = head->code.size();
+		file.write(reinterpret_cast<char*>(&codeSize), sizeof(codeSize));
+		file.write(head->code.c_str(), codeSize);
+
+		size_t genderSize = head->gender.size();
+		file.write(reinterpret_cast<char*>(&genderSize), sizeof(genderSize));
+		file.write(head->gender.c_str(), genderSize);
+
+		size_t educationFormSize = head->education_form.size();
+		file.write(reinterpret_cast<char*>(&educationFormSize), sizeof(educationFormSize));
+		file.write(head->education_form.c_str(), educationFormSize);
+
+		file.write(reinterpret_cast<char*>(&head->grade), sizeof(head->grade));
+
+		size_t dateSize = head->date.size();
+		file.write(reinterpret_cast<char*>(&dateSize), sizeof(dateSize));
+		file.write(head->date.c_str(), dateSize);
+
+		head = head->next;
+	}
+
+	file.close();
+}
+
+void readFromFile(Session *&head, Session *&tail, string &fileName) {
+	ifstream inputFile((fileName + ".txt").c_str());
+
+	if (!inputFile.is_open()) {
+		cerr << "Error opening text file for reading." << endl;
+		return;
+	}
+
+	string line;
+	while (getline(inputFile, line)) {
+		Session *newSession = new Session;
+
+		// Используем stringstream для удобного разделения строки на поля
+		stringstream ss(line);
+
+		if (!(ss >> newSession->number >> newSession->name >> newSession->surname >> newSession->father >>
+		        newSession->code >> newSession->gender >> newSession->education_form >> newSession->grade >>
+		        newSession->date)) {
+			// Прерываем цикл при достижении конца файла или возникновении ошибки ввода
+			delete newSession;
+			break;
+		}
+
+		// Добавление узла в двусвязный список
+		if (!head) {
+			head = tail = newSession;
+		} else {
+			tail->next = newSession;
+			newSession->prev = tail;
+			tail = newSession;
+		}
+	}
+
+	inputFile.close();
+	cout << "Data successfully read from text file" << endl;
+}
+
+void scholarshipStudents(Session *&head) {
+	map<string, int> courseCount;
+
+	if (!head) {
+		cout << "List is empty." << endl;
+		cout << "Press ENTER to return." << endl;
+		return;
+	}
+
+	Session *current = head;
+
+	// Проход по списку студентов
+	cout << "Receives a scholarship: " << endl;
+	while (current != NULL) {
+		if (current->grade >= 75) {
+			cout << current->surname << endl;
+
+			// Группировка по номеру курса (значениям полей 4 и 5)
+			string course = current->code.substr(3, 2);
+			courseCount[course]++;
+		}
+
+		// Переход к следующему элементу списка
+		current = current->next;
+	}
+
+	if (courseCount.empty()) {
+		cout << "No students receiving scholarships" << endl;
+		return;
+	}
+
+
+	// Вывод результатов группировки по курсам
+	cout << "Statistics on courses:" << endl;
+	for (auto &pair : courseCount) {
+		cout << "Course " << pair.first << " year: " << pair.second << endl;
+	}
+}
+
+bool containsSearchValue(Session* session, string& searchValue) {
+	return (to_string(session->number) == searchValue ||
+	        session->name == searchValue ||
+	        session->surname == searchValue ||
+	        session->father == searchValue ||
+	        session->code == searchValue ||
+	        session->gender == searchValue ||
+	        session->education_form == searchValue ||
+	        to_string(session->grade) == searchValue ||
+	        session->date == searchValue);
+}
+
+void search(Session* head) {
+	if (!head) {
+		cout << "The list is empty. Cannot display scrolling menu." << endl;
+		cout << "Press ENTER to return." << endl;
+		cin.ignore();
+		cin.get();
+		return;
+	}
+
+	int currentPage = 1;
+	int totalPages = getNumberOfPages(head);
+
+	while (true) {
+
+		system("cls");
+		cout << "Scrolling Menu:" << endl;
+		cout << "Page " << currentPage << " of " << totalPages << endl;
+		cout << "------------------------------------------------------------------------------------------------------------------------------------------------------------" << endl;
+		displayPage(head, currentPage);
+		cout << "------------------------------------------------------------------------------------------------------------------------------------------------------------" << endl;
+		cout << "<- Previous Page    Next Page ->" << endl;
+		cout << "Click ENTER to continue" << endl;
+
+		char tableKey = _getch();
+
+		switch (tableKey) {
+			case 75:  // Стрелка влево
+				if (currentPage > 1) {
+					--currentPage;
+				}
+				break;
+			case 77:  // Стрелка вправо
+				if (currentPage < totalPages) {
+					++currentPage;
+				}
+				break;
+			case 13:
+				goto ser;
+				break;
+
+			default:
+				break;
+		}
+	}
+
+ser:
+
+	string searchValue;
+	cout << "Enter information about the student you want to search: ";
+	cin >> searchValue;
+
+	Session* current = head;
+
+	while (current) {
+		// Сравниваем все поля с введенным значением
+		if (containsSearchValue(current, searchValue)) {
+			// Если найдено совпадение, печатаем элемент
+			printSession(current);
+			cout << "------------------------" << endl;
+		}
+
+		// Переходим к следующему элементу списка
+		current = current->next;
+	}
+}
+
+Session* findStudentByNumber(Session* head, int studentNumber) {
+	Session* current = head;
+	while (current) {
+		if (current->number == studentNumber) {
+			return current;
+		}
+		current = current->next;
+	}
+	return nullptr;
+}
+
+Session* edit(Session* head) {
+	if (!head) {
+		cout << "The list is empty. Cannot display scrolling menu." << endl;
+		cout << "Press ENTER to return." << endl;
+		cin.ignore();
+		cin.get();
+		return NULL;
+	}
+
+menu:
+
+	int currentPage = 1;
+	int totalPages = getNumberOfPages(head);
+
+	while (true) {
+
+		system("cls");
+		cout << "Scrolling Menu:" << endl;
+		cout << "Page " << currentPage << " of " << totalPages << endl;
+		cout << "------------------------------------------------------------------------------------------------------------------------------------------------------------" << endl;
+		displayPage(head, currentPage);
+		cout << "------------------------------------------------------------------------------------------------------------------------------------------------------------" << endl;
+		cout << "<- Previous Page    Next Page ->" << endl;
+		cout << "Click ENTER to continue" << endl;
+
+		char tableKey = _getch();
+
+		switch (tableKey) {
+			case 75:  // Стрелка влево
+				if (currentPage > 1) {
+					--currentPage;
+				}
+				break;
+			case 77:  // Стрелка вправо
+				if (currentPage < totalPages) {
+					++currentPage;
+				}
+				break;
+			case 13:
+				goto edit;
+				break;
+
+			default:
+				break;
+		}
+	}
+
+edit:
+
+	bool isValid = true;
+
+	int studentNumber;
+	cout << "Enter the student number of the student you want to edit: ";
+	while (true) {
+		if (cin >> studentNumber) {
+			break;
+		} else {
+			cout << "Input error. Please enter a valid student number: ";
+			cin.clear();
+			cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		}
+	}
+
+	Session* studentToEdit = findStudentByNumber(head, studentNumber);
+
+	if (!studentToEdit) {
+		cout << "Student with number " << studentNumber << " not found." << endl;
+		return nullptr;
+	}
+
+	string editMenu[] = {
+		"Choose a field to edit:\n",
+		"1. Student name\n",
+		"2. Student surname\n",
+		"3. Student name by father\n",
+		"4. Student group code\n",
+		"5. Student gender\n",
+		"6. Student education form\n",
+		"7. Student grade for the previous session\n",
+		"8. Date of exams\n",
+		"9. Back\n",
+		"10. Exit\n"
+	};
+
+	const int editMenuSize = 11; // Количество пунктов меню
+	int editSelectedItem = 1;
+
+	while (1) {
+		system("cls");
+		displayMenu(editMenu, editMenuSize, editSelectedItem);
+
+		char editKey = _getch();
+
+		switch (editKey) {
+			case 72: // Стрелка вверх
+				editSelectedItem = (editSelectedItem - 1 + editMenuSize) % editMenuSize;
+				break;
+			case 80: // Стрелка вниз
+				editSelectedItem = (editSelectedItem + 1) % editMenuSize;
+				break;
+			case 13: // Enter
+				system("cls");
+				switch (editSelectedItem) {
+					case 1:
+						cout << "Enter student name (Eng): ";
+						do {
+							isValid = true;
+
+							cin >> studentToEdit->name;
+
+							for (char c : studentToEdit->name) {
+								if (!isalpha(c)) {
+									isValid = false;
+									cout << "Input error. Please try again: ";
+									break;
+								}
+							}
+
+						} while (!isValid);
+						break;
+					case 2:
+						cout << "Enter new student surname (Eng): ";
+						do {
+							isValid = true;
+
+							cin >> studentToEdit->surname;
+
+							for (char c : studentToEdit->surname) {
+								if (!isalpha(c)) {
+									isValid = false;
+									cout << "Input error. Please try again: ";
+									break;
+								}
+							}
+
+						} while (!isValid);
+						break;
+					case 3:
+						cout << "Enter new student name by father (Eng): ";
+						do {
+							isValid = true;
+
+							cin >> studentToEdit->father;
+
+							for (char c : studentToEdit->father) {
+								if (!isalpha(c)) {
+									isValid = false;
+									cout << "Input error. Please try again: ";
+									break;
+								}
+							}
+
+						} while (!isValid);
+						break;
+					case 4:
+						cout << "Enter new student group code (Example: ITb216): ";
+						while (true) {
+							cin >> studentToEdit->code;
+							if (studentToEdit->code.size() == 6) {
+								break; // Exit the loop if 6 digits are entered
+							} else {
+								cout << "Input error. Please try again: ";
+								cin.clear();
+								cin.ignore();
+							}
+						}
+						break;
+					case 5:
+						cout << "Enter new student gender (F/M): ";
+						do {
+							isValid = true;
+
+							cin >> studentToEdit->gender;
+
+							for (char c : studentToEdit->gender) {
+								if (!isalpha(c)) {
+									isValid = false;
+									cout << "Input error. Please try again: ";
+									break;
+								}
+							}
+
+						} while (!isValid);
+						break;
+					case 6:
+						cout << "Enter new student education form (FullTime/Extramural): ";
+						do {
+							isValid = true;
+
+							cin >> studentToEdit->education_form;
+
+							for (char c : studentToEdit->education_form) {
+								if (!isalpha(c)) {
+									isValid = false;
+									cout << "Input error. Please try again: ";
+									break;
+								}
+							}
+
+						} while (!isValid);
+						break;
+					case 7:
+						cout << "Enter new student grade for the previous session: ";
+						while (isValid) {
+							if (cin >> studentToEdit->grade) {
+								isValid = false;
+								break;
+							} else {
+								cout << "Input error. Please try again: ";
+								cin.clear();
+								cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+							}
+						}
+						break;
+					case 8:
+						cout << "Enter the new date of exams (Example: 120923): ";
+						while (true) {
+							cin >> studentToEdit->date;
+
+							bool isValid = true;
+							for (char c : studentToEdit->date) {
+								if (!isdigit(c)) {
+									isValid = false;
+									break;
+								}
+							}
+
+							if (studentToEdit->date.size() == 6 && isValid) {
+								break;
+							} else {
+								cout << "Input error. Please try again: ";
+								cin.clear();
+								cin.ignore();
+							}
+						}
+						break;
+					case 9:
+						goto menu;
+						break;
+					case 10:
+						cout << "Changed student data:" << endl;;
+						printSession(studentToEdit);
+						return studentToEdit;
+						break;
+					default:
+						break;
+				}
+				system("pause");
+				break;
+			default:
+				break;
+		}
+	}
+}
+
+int main() {
+	Session *head = NULL;
+	Session *tail = NULL;
+	int choice1;
+	string fileName;
+
+	string menu[] = {
+		"Menu (use arrows on your keyboard and ENTER to select):\n",
+		"1. Add Student\n",
+		"2. Display List of Students\n",
+		"3. Delete Student\n",
+		"4. Edit Student Data\n",
+		"5. Student Search\n",
+		"6. Sort List by Grades\n",
+		"7. Display Students with Scholarship\n",
+		"8. Read from File\n",
+		"9. Write to File\n",
+		"10.Delete the List\n",
+		"0. Exit\n",
+	};
+	
+	
+
+	const int menuSize = 12; // Количество пунктов меню
+	int selectedItem = 1;
+menu:
+	while (1) {
+		system("cls");
+		displayMenu(menu, menuSize, selectedItem);
+		char key = _getch();
+
+		switch (key) {
+			case 72: // Стрелка вверх
+				selectedItem = (selectedItem - 1 + menuSize) % menuSize;
+				break;
+			case 80: // Стрелка вниз
+				selectedItem = (selectedItem + 1) % menuSize;
+				break;
+			case 13: // Enter
+				system("cls");
+				switch (selectedItem) {
+					case 1:
+						addStudent(head, tail);
+						break;
+
+					case 2:
+						scrollMenu(head);
+						break;
+
+					case 3:
+						deleteStudent(head, tail);
+						break;
+
+					case 4:
+						edit(head);
+						break;
+
+					case 5:
+						search(head);
+						break;
+
+					case 6: {
+						string sortMenu[] = {
+							"How to sort the list?\n",
+							"1. Sort in descending order\n",
+							"2. Sort in ascending order\n",
+							"3. Exit\n",
+						};
+
+						const int sortMenuSize = 4; // Количество пунктов в подменю сортировки
+						int sortSelectedItem = 1;
+
+						while (1) {
+							system("cls");
+							displayMenu(sortMenu, sortMenuSize, sortSelectedItem);
+
+							char sortKey = _getch();
+
+							switch (sortKey) {
+								case 72: // Стрелка вверх
+									sortSelectedItem = (sortSelectedItem - 1 + sortMenuSize) % sortMenuSize;
+									break;
+								case 80: // Стрелка вниз
+									sortSelectedItem = (sortSelectedItem + 1) % sortMenuSize;
+									break;
+								case 13: // Enter
+									system("cls");
+									switch (sortSelectedItem) {
+										case 1:
+											sortListByGradeDown(head);
+											break;
+										case 2:
+											sortListByGradeUp(head);
+											break;
+										case 3:
+											goto menu;
+											break;
+										default:
+											break;
+									}
+									system("pause");
+									break;
+								default:
+									break;
+							}
+						} 
+						break;
+					}
+
+					case 7:
+						scholarshipStudents(head);
+						break;
+
+					case 8:
+						cout << "Enter the file name for reading (without extension): ";
+						cin >> fileName;
+						readFromFile(head, tail, fileName);
+						break;
+
+					case 9:
+						cout << "Enter the file name for writing (without extension): ";
+						cin >> fileName;
+						writeToTextFile(head, fileName);
+						writeToBinaryFile(head, fileName);
+						break;
+
+					case 10:
+						clear(head, tail);
+						cout << "The list was deleted" << endl;
+						break;
+
+					case 11:
+						clear(head, tail);
+						cout << "End of the program. Goodbye!" << endl;
+						exit(0);
+						break;
+
+					default:
+						break;
+				}
+				system("pause");
+				break;
+
+			default:
+				break;
+		}
+	}
+}
